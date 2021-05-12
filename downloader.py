@@ -22,7 +22,7 @@ class ThreadedFileDownloader:
         self.semaphore.acquire()
 
         filename: str = url.split("/")[-1]
-        filepath: str = os.path.join("data", filename)
+        filepath: str = os.path.join(self.config.get("downloader").get("dest_dir"), filename)
 
         if not os.path.isfile(filepath):
             self.download(url, filepath)
@@ -43,13 +43,13 @@ class ThreadedFileDownloader:
     def resume(self):
         pass
 
-    def run_downloader(self, url: str):
+    def run(self, url: str):
         thread = threading.Thread(target=self.get_file, args=(url,))
         thread.start()
 
     def _write_file(self, response: requests.Response, filepath: str, mode: str):
         total_size = int(response.headers.get("content-length", 0))  # FAERS Quarterly files server does not support content-length.
-        pbar = tqdm(total=total_size, desc="woo", unit="B", unit_scale=True, leave=True)
+        pbar = tqdm(total=total_size, desc=f"{filepath.split('/')[-1]}", unit="B", unit_scale=True, leave=True)
         print(f"total size: {total_size}")
         with open(file=filepath, mode=mode) as f:
             for chunk in response.iter_content(chunk_size=self.chunk_size):

@@ -10,9 +10,12 @@ author = "Julius Cathalina <julius.cathalina@gmail.com>"
 # TODO: psql?
 
 [downloader]
-base_url = "https://fis.fda.gov/extensions/FPD-QDE-FAERS/FPD-QDE-FAERS.html"
 dest_dir = "data"
 max_threads = 4
+
+[scraper]
+base_url = "https://fis.fda.gov/extensions/FPD-QDE-FAERS/FPD-QDE-FAERS.html"
+
 
 [headers]
 user-agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36'
