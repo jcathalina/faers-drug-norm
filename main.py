@@ -11,6 +11,8 @@ import pandas as pd
 import glob
 import os
 
+from sqlalchemy import create_engine
+from sql_utils import psql_insert_copy
 
 if __name__ == '__main__':
 
@@ -66,5 +68,9 @@ if __name__ == '__main__':
                 print(f"Not enough permissions to create file. Caused by: {e}")
         drug_df.to_csv("data/processed/drug_table.csv")
 
-    df: pd.DataFrame = pd.read_csv("data/processed/drug_table.csv", low_memory=False)
-    print(len(df))  # 40_584_418 entries from 2012 Q4 --- 2021 Q1
+        df: pd.DataFrame = pd.read_csv("data/processed/drug_table.csv", low_memory=False)
+        print(len(df))  # 40_584_418 entries from 2012 Q4 --- 2021 Q1
+        engine = create_engine('postgresql://postgres:x25072014@localhost:5432/fdn')  # TODO: Get this from the config.toml
+        df.to_sql('drug_table', engine, method=psql_insert_copy, chunksize=250000)
+
+
