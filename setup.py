@@ -12,7 +12,7 @@ import glob
 import os
 
 from sqlalchemy import create_engine
-from sql_utils import psql_insert_copy
+from sql.sql_utils import psql_insert_copy
 
 
 def contains(filepath: str, *substrings: str) -> bool:

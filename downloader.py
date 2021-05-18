@@ -22,7 +22,7 @@ class ThreadedFileDownloader:
         self.semaphore.acquire()
 
         filename: str = url.split("/")[-1]
-        filepath: str = os.path.join(self.config.get("downloader").get("dest_dir"), filename)
+        filepath: str = os.path.join(self.config.get("downloader").get("dest_dir"), "zipfiles", filename)
 
         if not os.path.isfile(filepath):
             self.download(url, filepath)

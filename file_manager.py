@@ -15,8 +15,7 @@ class FileManager:
             try:
                 os.mkdir(extract_path)
             except PermissionError as e:
-                print(f"Not enough permissions: {e}. Extracting all zipfiles to pwd")
-                extract_path = zip_dir
+                print(f"Not enough permissions: {e}.")
 
         print("Extracting files...")
         for file in tqdm(os.listdir(zip_dir)):
@@ -32,13 +31,14 @@ class FileManager:
             full_filename = os.path.join(extracted_dir, f)
             if os.path.isfile(full_filename) and full_filename.endswith((".pdf", ".PDF")):
                 files_to_remove.append(full_filename)
-        print(f"Removing {len(files_to_remove)} PDF files...")
 
-        for file in files_to_remove:
+        print(f"Removing {len(files_to_remove)} PDF files...")
+        for file in tqdm(files_to_remove):
             try:
                 os.remove(file)
             except FileNotFoundError as e:
                 print(f"Not able to find {file}, error: {e}")
+                continue
 
 
 
