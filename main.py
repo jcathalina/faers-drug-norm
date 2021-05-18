@@ -7,6 +7,8 @@ from utils import list_chunker
 
 from mapper.regex_patterns import *
 
+from mapper.approx_match import rxnorm_match
+
 import concurrent.futures
 
 compiled_drug_name_regexes: List[re.Pattern] = [
@@ -19,10 +21,8 @@ compiled_drug_name_regexes: List[re.Pattern] = [
 
 compiled_active_ingredient_regexes: List[re.Pattern] = []
 
-WORKERS = 4
 
-if __name__ == '__main__':
-
+def run_matching_process(WORKERS: int = 4):
     mapper = DrugNameMapper(regex_objects_for_drug_name=compiled_drug_name_regexes,
                             regex_objects_for_active_ingredient=compiled_active_ingredient_regexes,
                             nda_filepath="data/dictionaries/nda_dict.csv")
@@ -31,12 +31,13 @@ if __name__ == '__main__':
 
     chunk_len = len(all_drug_info) // WORKERS
 
-    print(chunk_len)
-
     c = list(list_chunker(lst=all_drug_info, chunk_length=chunk_len))
-
-    print(len(c))
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=WORKERS) as e:
         for result in e.map(mapper.run, c):
             pass
+
+if __name__ == '__main__':
+    pass
+
+

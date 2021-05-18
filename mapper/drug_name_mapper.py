@@ -4,7 +4,7 @@ from random import randint
 from tqdm import tqdm
 
 from .drug_info import DrugInfo
-from .approx_match import rxnorm_approx_match, RxNormMatch
+from .approx_match import rxnorm_approx_match, RxNormMatch, rxnorm_match
 import pandas as pd
 
 import re
@@ -17,11 +17,13 @@ MATCH_THRESHOLD = 90
 class DrugNameMapper:
     def __init__(self, regex_objects_for_drug_name: List[re.Pattern],
                  regex_objects_for_active_ingredient: List[re.Pattern],
-                 nda_filepath: str) -> None:
+                 nda_filepath: str,
+                 match_type: str = "approx") -> None:
         self.regex_objects_dn = regex_objects_for_drug_name
         self.regex_objects_ai = regex_objects_for_active_ingredient  # TODO: Active Ingredient regex patterns from Banda et al. 2016
         self.nda_table = self._generate_nda_table(path_to_nda_dict=nda_filepath)  # HashMap<nda_num, name>
         self.hash_table = defaultdict(int)  # HashMap<drug_name, rxcui>
+        self.match_type = match_type
 
     def _hash_exists(self, drug_name: str) -> bool:
         return drug_name in self.hash_table  # check if we already processed this entry before
