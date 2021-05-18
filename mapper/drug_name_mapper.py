@@ -3,8 +3,8 @@ from collections import defaultdict
 from random import randint
 from tqdm import tqdm
 
-from drug_info import DrugInfo
-from approx_match import rxnorm_approx_match, RxNormMatch
+from .drug_info import DrugInfo
+from .approx_match import rxnorm_approx_match, RxNormMatch
 import pandas as pd
 
 import re

@@ -27,9 +27,8 @@ if __name__ == '__main__':
                             regex_objects_for_active_ingredient=compiled_active_ingredient_regexes,
                             nda_filepath="data/dictionaries/nda_dict.csv")
 
-    all_drug_info = mapper.get_drug_info(path_to_drug_table="")
+    all_drug_info = mapper.get_drug_info(path_to_drug_table="data/processed/validated_drugname_list.csv")
 
-    # print(len(all_drug_info))  # 19016905
     chunk_len = len(all_drug_info) // WORKERS
 
     print(chunk_len)
