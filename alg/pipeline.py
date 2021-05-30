@@ -40,21 +40,48 @@ class AbbreviationComponent:
         return doc
 
 
-spacy.prefer_gpu()
-# nlp = spacy.load("en_core_web_sm")
-nlp = spacy.blank("en")
-nlp.add_pipe("abbreviations", config={"case_sensitive": False})
+# spacy.prefer_gpu()
+# # nlp = spacy.load("en_core_web_sm")
+# nlp = spacy.blank("en")
+# nlp.add_pipe("abbreviations", config={"case_sensitive": False})
+#
+# # doc = nlp("acet 200 mg tablet")
+# # print(doc._.abbreviations)
+#
+# import pandas as pd
+#
+# # a = pd.read_csv("../data/processed/drug_table_clean.csv", usecols=["drugname", "prod_ai"], nrows=10000, dtype="object")
+# # a = a["drugname"].to_list()
+# a = ["INJ MG HCL something tablet"]
+#
+# for x in a:
+#     doc = nlp(x)
+#     # print(f"Doc: {doc}, Abbr: {doc._.abbreviations}")
+#     print(doc)
 
-# doc = nlp("acet 200 mg tablet")
-# print(doc._.abbreviations)
+from spacy.lang.en import English
 
-import pandas as pd
 
-# a = pd.read_csv("../data/processed/drug_table_clean.csv", usecols=["drugname", "prod_ai"], nrows=10000, dtype="object")
-# a = a["drugname"].to_list()
-a = ["INJ MG HCL something tablet"]
+class AbbreviationExpander:
+    def __init__(self, norm_table):
+        self.norm_table = norm_table
 
-for x in a:
-    doc = nlp(x)
-    # print(f"Doc: {doc}, Abbr: {doc._.abbreviations}")
-    print(doc)
+    def __call__(self, doc):
+        for token in doc:
+            # Overwrite the token.norm_ if there's an entry in the data
+            token.norm_ = self.norm_table.get(token.text, token.norm_)
+        return doc
+
+
+@English.factory("abbreviation_expander")
+def create_en_normalizer(nlp, name):
+    with open(file="../data/dictionaries/abbreviations.json", mode="r", encoding="utf-8") as f:
+        abbreviations: Dict[str, str] = json.load(f)
+    return AbbreviationExpander(abbreviations)
+
+
+nlp = English()
+nlp.add_pipe("abbreviation_expander")
+
+a = [token.norm_ for token in nlp("inj mg hcl something tablet")]
+print(" ".join(a))
