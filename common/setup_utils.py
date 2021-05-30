@@ -42,7 +42,7 @@ def setup_faers(load_to_psql: bool = False):
 
 
     # TODO: This can probably be done way nicer, us re.compile to use regex to filter only drug files in glob
-    path = "data/extracted/ascii"
+    path = "../data/extracted/ascii"
     all_files = glob.glob(path + "/*.txt")
     drug_files: List[str] = []
     for file in all_files:
@@ -62,12 +62,12 @@ def setup_faers(load_to_psql: bool = False):
         li.append(df)
     drug_df: pd.DataFrame = pd.concat(li, axis=0, ignore_index=True)
 
-    if not os.path.exists("data/processed"):
+    if not os.path.exists("../data/processed"):
         try:
-            os.mkdir("data/processed")
+            os.mkdir("../data/processed")
         except PermissionError as e:
             print(f"Not enough permissions to create file. Caused by: {e}")
-    drug_df.to_csv("data/processed/drug_table.csv", index=False)
+    drug_df.to_csv("../data/processed/drug_table.csv", index=False)
 
     if load_to_psql:
         # print(len(df))  # 40_584_418 entries from 2012 Q4 --- 2021 Q1
@@ -106,9 +106,9 @@ def category_table_to_csv(category_files: List[str]):
         df_list.append(df)
     cat_df: pd.DataFrame = pd.concat(df_list, axis=0, ignore_index=True)
 
-    if not os.path.exists("data/processed"):
+    if not os.path.exists("../data/processed"):
         try:
-            os.mkdir("data/processed")
+            os.mkdir("../data/processed")
         except PermissionError as permission_error:
             print(f"Not enough permissions to create file. Caused by: {permission_error}")
-    cat_df.to_csv("data/processed/drug_table.csv", index=False)
+    cat_df.to_csv("../data/processed/drug_table.csv", index=False)
