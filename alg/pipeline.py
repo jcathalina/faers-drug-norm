@@ -62,26 +62,54 @@ class AbbreviationComponent:
 from spacy.lang.en import English
 
 
-class AbbreviationExpander:
-    def __init__(self, norm_table):
-        self.norm_table = norm_table
+class AbbreviationHandler:
+    def __init__(self, abbrev_dict):
+        self.abbrev_dict = abbrev_dict
 
     def __call__(self, doc):
         for token in doc:
-            # Overwrite the token.norm_ if there's an entry in the data
-            token.norm_ = self.norm_table.get(token.text, token.norm_)
+            token.norm_ = self.abbrev_dict.get(token.text.lower(), token.norm_)
         return doc
 
 
-@English.factory("abbreviation_expander")
-def create_en_normalizer(nlp, name):
+@Language.factory("abbreviation_handler")
+def create_abbreviation_handler(nlp: Language, name: str):
     with open(file="../data/dictionaries/abbreviations.json", mode="r", encoding="utf-8") as f:
         abbreviations: Dict[str, str] = json.load(f)
-    return AbbreviationExpander(abbreviations)
+    return AbbreviationHandler(abbreviations)
 
 
-nlp = English()
-nlp.add_pipe("abbreviation_expander")
+def expand_abbreviations(list_to_expand: List[str]):
+    nlp = English()
+    nlp.add_pipe("abbreviation_handler")
 
-a = [token.norm_ for token in nlp("inj mg hcl something tablet")]
-print(" ".join(a))
+    for item in list_to_expand:
+        if not isinstance(item, str):
+            item = "nan"
+        p_item = " ".join([token.norm_ for token in nlp(item)])
+        yield p_item
+
+
+# a = [token.norm_ for token in nlp("INJ mg hcl something tablet")]
+# print(" ".join(a))
+import pandas as pd
+
+# test = pd.read_csv("../data/processed/drug_table_clean.csv", usecols=["drugname", "prod_ai"], chunksize=250, nrows=1000)
+# with open("abbrev_test.csv", mode="a", encoding="utf-8") as f:
+#     for chunk in test:
+#         test_list = chunk["drugname"].to_list()
+#         p_test_list = expand_abbreviations(test_list)
+#         for item in p_test_list:
+#             f.write(f"{item}\n")
+
+
+nlp = spacy.load("en_core_web_sm")
+doc = nlp("Paracetamol accuprinil 500 mg tablet")
+
+for token in doc.ents:
+    print(token.text, token.label_)
+
+#
+# x = expand_abbreviations(test_list)
+# y = list(x)
+# print(y)
