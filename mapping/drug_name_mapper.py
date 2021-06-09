@@ -4,7 +4,7 @@ from random import randint
 from tqdm import tqdm
 
 from .drug_info import DrugInfo
-from .approx_match import rxnorm_approx_match, RxNormMatch, rxnorm_match
+from .rxnav import approx_match, RxNavResponse
 import pandas as pd
 
 import re
@@ -83,7 +83,7 @@ class DrugNameMapper:
 
     @staticmethod
     def rxnav_lookup(drug_name: str) -> int:
-        possible_match: RxNormMatch = rxnorm_approx_match(drug_name)
+        possible_match: RxNavResponse = approx_match(drug_name)
         match_score: int = possible_match.candidates[0].score
 
         if match_score >= MATCH_THRESHOLD:
@@ -137,7 +137,7 @@ class DrugNameMapper:
     def run(self, drug_info_chunk: List[DrugInfo]):
 
         # Before anything, make sure rxnav is running locally with a simple test
-        # assert mapper.rxnav_is_running(), "Please make sure you have a local rxnav instance running." \
+        # assert mapping.rxnav_is_running(), "Please make sure you have a local rxnav instance running." \
         #                                   "For assistance on how to do this, consult the README"
 
 

@@ -2,9 +2,9 @@ from typing import List
 
 import toml
 
-from downloader import ThreadedFileDownloader
-from scraper import Scraper
-from file_manager import FileManager
+from .downloader import ThreadedFileDownloader
+from .scraper import Scraper
+from .file_manager import FileManager
 from tqdm import tqdm
 
 import pandas as pd
@@ -12,7 +12,7 @@ import glob
 import os
 
 from sqlalchemy import create_engine
-from sql.sql_utils import psql_insert_copy
+from utils.psql_utils import psql_insert_copy
 
 
 def contains(filepath: str, *substrings: str) -> bool:
@@ -42,7 +42,7 @@ def setup_faers(load_to_psql: bool = False):
 
 
     # TODO: This can probably be done way nicer, us re.compile to use regex to filter only drug files in glob
-    path = "data/extracted/ascii"
+    path = "../data/extracted/ascii"
     all_files = glob.glob(path + "/*.txt")
     drug_files: List[str] = []
     for file in all_files:
@@ -62,12 +62,12 @@ def setup_faers(load_to_psql: bool = False):
         li.append(df)
     drug_df: pd.DataFrame = pd.concat(li, axis=0, ignore_index=True)
 
-    if not os.path.exists("data/processed"):
+    if not os.path.exists("../data/processed"):
         try:
-            os.mkdir("data/processed")
+            os.mkdir("../data/processed")
         except PermissionError as e:
             print(f"Not enough permissions to create file. Caused by: {e}")
-    drug_df.to_csv("data/processed/drug_table.csv", index=False)
+    drug_df.to_csv("../data/FAERS_2012Q4_2021Q1.csv", index=False)
 
     if load_to_psql:
         # print(len(df))  # 40_584_418 entries from 2012 Q4 --- 2021 Q1
@@ -93,11 +93,12 @@ def get_ascii_files_of_category(category: str = "drug", ascii_files_path: str = 
     return category_files
 
 
-def category_table_to_csv(category_files: List[str]):
+def category_table_to_csv(category_files: List[str], filename: str):
+    assert os.path.exists("data/processed"), "Can not find specified path."
     df_list: List[pd.DataFrame] = []
 
     for file in tqdm(category_files):
-        df: pd.DataFrame = pd.read_csv(file, sep="$", index_col=None, header=0, low_memory=False)
+        df: pd.DataFrame = pd.read_csv(file, sep="$", index_col=None, header=0, low_memory=False, error_bad_lines=False)
         # TODO: move this try except block to its own function to cleanup code.
         try:
             df["origin"] = file.split("/")[-1].split("\\")[-1]  # Bypass weird windows backslash, not necessary for other OS's
@@ -106,9 +107,9 @@ def category_table_to_csv(category_files: List[str]):
         df_list.append(df)
     cat_df: pd.DataFrame = pd.concat(df_list, axis=0, ignore_index=True)
 
-    if not os.path.exists("data/processed"):
-        try:
-            os.mkdir("data/processed")
-        except PermissionError as permission_error:
-            print(f"Not enough permissions to create file. Caused by: {permission_error}")
-    cat_df.to_csv("data/processed/drug_table.csv", index=False)
+    # if not os.path.exists("../data/processed"):
+    #     try:
+    #         os.mkdir("../data/processed")
+    #     except PermissionError as permission_error:
+    #         print(f"Not enough permissions to create file. Caused by: {permission_error}")
+    cat_df.to_csv(f"data/processed/{filename}", index=False)
