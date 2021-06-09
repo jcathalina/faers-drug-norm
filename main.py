@@ -17,6 +17,17 @@ for _, row in drug_table.iterrows():
     res = approx_match(query=data.query)
     print(res)
 
+# TODO: Make a devset with random samples from the FAERS dataset, ~10000 samples should be good
+# TODO: Recreate the banda set using the legacy data + FAERS up until 2015 Q3 (check if this is correct)
+# TODO: Write benchmark scripts for performance between tweaks + vs. Banda
+# TODO: Write out analysis methods that will be implemented during mapping, e.g. how many times do we match EU names
+# TODO: Output some sicc images
+# TODO: Add a directly runnable python script that downloads the aggregated data from figshare
+
+
+
+
+
 # TODO: Rewrite this as a separate test with hardcoded data entries.
 test_series = drug_table.iloc[9995]
 

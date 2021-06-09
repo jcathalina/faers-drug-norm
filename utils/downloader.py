@@ -14,15 +14,14 @@ class ThreadedFileDownloader:
     """
     def __init__(self, configuration: Dict):
         self.config = configuration
-        self.headers = configuration.get("headers")
-        self.semaphore = threading.Semaphore(value=configuration.get("downloader").get("max_threads"))
+        self.semaphore = threading.Semaphore(value=configuration.get("max_threads"))
         self.chunk_size = 1024
 
     def get_file(self, url: str):
         self.semaphore.acquire()
 
         filename: str = url.split("/")[-1]
-        filepath: str = os.path.join(self.config.get("downloader").get("dest_dir"), "zipfiles", filename)
+        filepath: str = os.path.join(self.config.get("dest_dir"), filename)
 
         if not os.path.isfile(filepath):
             self.download(url, filepath)
