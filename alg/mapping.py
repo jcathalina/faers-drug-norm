@@ -18,7 +18,7 @@ class RxNormMapper:
         self.successful_name_only_calls = 0
         self.successful_default_calls = 0
         self.successful_backup_calls = 0
-
+        self.unmappable: "List[FaersDataRow]" = []  # TODO: Maybe I should just yield an unmappable and log it instead of keeping the list in mem
 
 
     def map_to_rxnorm(self, data_row: "FaersDataRow", include_international=True) -> None:
