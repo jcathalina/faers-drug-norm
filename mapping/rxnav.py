@@ -14,25 +14,27 @@ class RxNavResponse:
     def __init__(self, query: str, candidates: List[Candidate]):
         self.query = query
         self.candidates = candidates
+        self.top_candidate = candidates[0]
+        self.success = False
 
     def __repr__(self):
         return f"Query: {self.query} -- Candidates: {self.candidates}"
 
     def csv_format(self):
-        return f"{self.query},{self.candidates[0].rxcui},{self.candidates[0].score}\n"
+        return f"{self.query},{self.top_candidate.rxcui},{self.top_candidate.score}\n"
 
 
-def approx_match(query: str, max_entries=1, sleep_time=1) -> RxNavResponse:
+def approx_match(query: str, max_entries=1, sleep_time=1, confidence_threshold: int = 80) -> "RxNavResponse":
     candidates: List[Candidate] = []
 
     # Ensure valid URL for RxNav
     query = query.replace("\n", "").strip()
     url_query: str = query.replace(" ", "%")
 
-    response = None
+    response: "Optional[Response]" = None
     while response is None:
         try:
-            response: Optional[Response] = requests.get(
+            response = requests.get(
                 f"http://localhost:4000/REST/approximateTerm.json?term={url_query}&maxEntries={max_entries}")
             break
         except ConnectionRefusedError:
@@ -50,4 +52,7 @@ def approx_match(query: str, max_entries=1, sleep_time=1) -> RxNavResponse:
         return RxNavResponse(query=query, candidates=[Candidate("NULL", 0)])
     for j_candidate in j_candidates:
         candidates.append(Candidate(j_candidate["rxcui"], int(j_candidate["score"])))
-    return RxNavResponse(query=query, candidates=candidates)
+
+    rxnav_response = RxNavResponse(query=query, candidates=candidates)
+    rxnav_response.success = rxnav_response.top_candidate.score >= confidence_threshold
+    return rxnav_response
