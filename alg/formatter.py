@@ -20,6 +20,7 @@ class Identifier:
 class FaersDataRow:  # TODO: Think of a better name for this
     """Class for creating and handling a RxNav query along with its metadata to link it back to the original FAERS DB"""
     def __init__(self, data: pd.Series):
+        self.drug_name_entry: str = data["drug_name"]
         self.query: str = self._create_query(data=data)
         self.identifier = Identifier(primary_id=data["primaryid"], case_id=data["caseid"], drug_seq=data["drug_seq"])
         self.nda_num: "Optional[str]" = data["nda_num"]
