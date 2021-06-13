@@ -29,7 +29,8 @@ class RxNormMapper:
                               "drug_seq": [],
                               "rxcui": [],
                               "method": [],
-                              "score": []
+                              "score": [],
+                              "query": [],
                               }
 
     def map_to_rxnorm(self, data_row: "FaersDataRow", include_international=True) -> None:
@@ -44,7 +45,10 @@ class RxNormMapper:
 
         while not tries_exhausted:  # TODO: Make a list of functions and loop through that to make code shorter.
 
+            # NDA number check
             response: RxNavResponse = self.try_mapping_nda_num(data=data_row)
+            brsf = response
+            bm = "NDA"
             if response.success:
                 self.tracker["primaryid"].append(data_row.identifier.primary_id)
                 self.tracker["caseid"].append(data_row.identifier.case_id)
@@ -52,9 +56,16 @@ class RxNormMapper:
                 self.tracker["rxcui"].append(response.top_candidate.rxcui)
                 self.tracker["method"].append("NDA")  # NDA number
                 self.tracker["score"].append(response.top_candidate.score)
+                self.tracker["query"].append(response.query)
                 break
 
+            # Only drug name check
             response = self.try_mapping_only_drug_name(data=data_row)
+
+            if response.top_candidate.score > brsf.top_candidate.score:
+                brsf = response
+                bm = "DNO"
+
             if response.success:
                 self.tracker["primaryid"].append(data_row.identifier.primary_id)
                 self.tracker["caseid"].append(data_row.identifier.case_id)
@@ -62,9 +73,16 @@ class RxNormMapper:
                 self.tracker["rxcui"].append(response.top_candidate.rxcui)
                 self.tracker["method"].append("DNO")  # Drug Name Only
                 self.tracker["score"].append(response.top_candidate.score)
+                self.tracker["query"].append(response.query)
                 break
 
+            # Default query check
             response = self.try_mapping_default_query(data=data_row)
+
+            if response.top_candidate.score > brsf.top_candidate.score:
+                brsf = response
+                bm = "DFQ"
+
             if response.success:
                 self.tracker["primaryid"].append(data_row.identifier.primary_id)
                 self.tracker["caseid"].append(data_row.identifier.case_id)
@@ -72,9 +90,16 @@ class RxNormMapper:
                 self.tracker["rxcui"].append(response.top_candidate.rxcui)
                 self.tracker["method"].append("DFQ")  # DeFault Query
                 self.tracker["score"].append(response.top_candidate.score)
+                self.tracker["query"].append(response.query)
                 break
 
+            # Backup query check
             response = self.try_mapping_backup_query(data=data_row)
+
+            if response.top_candidate.score > brsf.top_candidate.score:
+                brsf = response
+                bm = "BUQ"
+
             if response.success:
                 self.tracker["primaryid"].append(data_row.identifier.primary_id)
                 self.tracker["caseid"].append(data_row.identifier.case_id)
@@ -82,11 +107,18 @@ class RxNormMapper:
                 self.tracker["rxcui"].append(response.top_candidate.rxcui)
                 self.tracker["method"].append("BUQ")  # BackUp Query
                 self.tracker["score"].append(response.top_candidate.score)
+                self.tracker["query"].append(response.query)
                 break
 
+            # International mapping for active ing check
             if include_international:
                 response = self.try_mapping_with_international_data(data=data_row)
                 # TODO: The international mapper has to fuzzy match against the EU dict to find the closest match or direct matching?
+
+                if response.top_candidate.score > brsf.top_candidate.score:
+                    brsf = response
+                    bm = "INT"
+
                 if response.success:
                     self.tracker["primaryid"].append(data_row.identifier.primary_id)
                     self.tracker["caseid"].append(data_row.identifier.case_id)
@@ -94,15 +126,20 @@ class RxNormMapper:
                     self.tracker["rxcui"].append(response.top_candidate.rxcui)
                     self.tracker["method"].append("INT")  # INTernational active ingredient mapped
                     self.tracker["score"].append(response.top_candidate.score)
+                    self.tracker["query"].append(response.query)
                     break
 
-            print(self.tracker["primaryid"])
+            # set best method to NIL if literally no score has been found
+            if brsf.top_candidate.score == 0:
+                bm = "NIL"
+
             self.tracker["primaryid"].append(data_row.identifier.primary_id)
             self.tracker["caseid"].append(data_row.identifier.case_id)
             self.tracker["drug_seq"].append(data_row.identifier.drug_seq)
-            self.tracker["rxcui"].append(response.top_candidate.rxcui)
-            self.tracker["method"].append("NIL")  # No mapping has been found
-            self.tracker["score"].append(response.top_candidate.score)
+            self.tracker["rxcui"].append(brsf.top_candidate.rxcui)
+            self.tracker["method"].append(bm)  # No high quality mapping has been found
+            self.tracker["score"].append(brsf.top_candidate.score)
+            self.tracker["query"].append(brsf.query)
             # print("No high-confidence mapping found... ")
             tries_exhausted = True
 

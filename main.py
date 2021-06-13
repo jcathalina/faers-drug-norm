@@ -25,20 +25,31 @@ if __name__ == "__main__":
         "aers_path": "C:/_msc/faers-drug-norm/data/AERS_MIN_2004Q1_2012Q3.csv",
         "dev_path": "C:/_msc/faers-drug-norm/data/FAERS_DEV_SET.csv",
         "full_path": "C:/_msc/faers-drug-norm/data/FAERS_MIN_FULL_UNTIL_2021Q1.csv",
-        "n_rows": 10
+        "n_rows": 5000
     }
 
+    def exp_1_no_clean_no_int():
+        mapper = RxNormMapper(config=mapper_configuration)
+        faers_data = load_faers_data(config=faers_configuration, file_to_use="dev")
 
-    mapper = RxNormMapper(config=mapper_configuration)
-    faers_data = load_faers_data(config=faers_configuration, file_to_use="dev")
+        for _, row in tqdm(faers_data.iterrows(), total=len(faers_data)):
+            data = FaersDataRow(data=row)
+            mapper.map_to_rxnorm(data_row=data, include_international=False)
 
-    for _, row in tqdm(faers_data.iterrows(), total=len(faers_data)):
-        data = FaersDataRow(data=row)
-        mapper.map_to_rxnorm(data_row=data)
+        df = mapper.to_dataframe()
+        df.to_csv("exp_1_no_clean_no_int.csv", index=False)
 
-    df = mapper.to_dataframe()
-    print(df.head())
-    df.to_csv("test_run.csv", index=False)
+
+    def exp_2_no_clean_yes_int():
+        mapper = RxNormMapper(config=mapper_configuration)
+        faers_data = load_faers_data(config=faers_configuration, file_to_use="dev")
+
+        for _, row in tqdm(faers_data.iterrows(), total=len(faers_data)):
+            data = FaersDataRow(data=row)
+            mapper.map_to_rxnorm(data_row=data, include_international=True)
+
+        df = mapper.to_dataframe()
+        df.to_csv("exp_2_no_clean_yes_int.csv", index=False)
 
     # print("DONE! HERE ARE THE STATS!!")
     #
