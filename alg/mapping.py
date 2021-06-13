@@ -6,8 +6,9 @@ import numpy as np
 from alg.formatter import FaersDataRow, Identifier
 from alg.rxnav import approx_match, RxNavResponse, Candidate
 
-import logging
-logging.basicConfig(filename='faers_dev.log', level=logging.INFO)
+# import logging
+# logging.basicConfig(filename='faers_dev.log', level=logging.INFO)
+pd.set_option('display.float_format', lambda x: f'%.{len(str(x % 1)) - 2}f' % x)
 
 
 class RxNormMapper:
@@ -47,7 +48,7 @@ class RxNormMapper:
             if response.success:
                 self.tracker["primaryid"].append(data_row.identifier.primary_id)
                 self.tracker["caseid"].append(data_row.identifier.case_id)
-                self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+                self.tracker["drug_seq"].append(data_row.identifier.drug_seq)
                 self.tracker["rxcui"].append(response.top_candidate.rxcui)
                 self.tracker["method"].append("NDA")  # NDA number
                 self.tracker["score"].append(response.top_candidate.score)
@@ -57,7 +58,7 @@ class RxNormMapper:
             if response.success:
                 self.tracker["primaryid"].append(data_row.identifier.primary_id)
                 self.tracker["caseid"].append(data_row.identifier.case_id)
-                self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+                self.tracker["drug_seq"].append(data_row.identifier.drug_seq)
                 self.tracker["rxcui"].append(response.top_candidate.rxcui)
                 self.tracker["method"].append("DNO")  # Drug Name Only
                 self.tracker["score"].append(response.top_candidate.score)
@@ -67,7 +68,7 @@ class RxNormMapper:
             if response.success:
                 self.tracker["primaryid"].append(data_row.identifier.primary_id)
                 self.tracker["caseid"].append(data_row.identifier.case_id)
-                self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+                self.tracker["drug_seq"].append(data_row.identifier.drug_seq)
                 self.tracker["rxcui"].append(response.top_candidate.rxcui)
                 self.tracker["method"].append("DFQ")  # DeFault Query
                 self.tracker["score"].append(response.top_candidate.score)
@@ -77,7 +78,7 @@ class RxNormMapper:
             if response.success:
                 self.tracker["primaryid"].append(data_row.identifier.primary_id)
                 self.tracker["caseid"].append(data_row.identifier.case_id)
-                self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+                self.tracker["drug_seq"].append(data_row.identifier.drug_seq)
                 self.tracker["rxcui"].append(response.top_candidate.rxcui)
                 self.tracker["method"].append("BUQ")  # BackUp Query
                 self.tracker["score"].append(response.top_candidate.score)
@@ -89,15 +90,16 @@ class RxNormMapper:
                 if response.success:
                     self.tracker["primaryid"].append(data_row.identifier.primary_id)
                     self.tracker["caseid"].append(data_row.identifier.case_id)
-                    self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+                    self.tracker["drug_seq"].append(data_row.identifier.drug_seq)
                     self.tracker["rxcui"].append(response.top_candidate.rxcui)
                     self.tracker["method"].append("INT")  # INTernational active ingredient mapped
                     self.tracker["score"].append(response.top_candidate.score)
                     break
 
+            print(self.tracker["primaryid"])
             self.tracker["primaryid"].append(data_row.identifier.primary_id)
             self.tracker["caseid"].append(data_row.identifier.case_id)
-            self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+            self.tracker["drug_seq"].append(data_row.identifier.drug_seq)
             self.tracker["rxcui"].append(response.top_candidate.rxcui)
             self.tracker["method"].append("NIL")  # No mapping has been found
             self.tracker["score"].append(response.top_candidate.score)
@@ -143,7 +145,7 @@ class RxNormMapper:
         return {d["drug_name"]: d["prod_ai"] for d in int_df.to_dict(orient="records")}
 
     def to_dataframe(self) -> pd.DataFrame:
-        return pd.DataFrame.from_dict(self.tracker)
+        return pd.DataFrame.from_dict(self.tracker, dtype=str)
 
     def to_csv(self, path: str):
         return self.to_dataframe().to_csv(path_or_buf=path, index=False)
@@ -172,7 +174,7 @@ def load_faers_data(config: "Dict[str, str]", file_to_use: str) -> "pd.DataFrame
 
     f_data: pd.DataFrame = pd.read_csv(filepath_or_buffer=filepath,
                                        nrows=config["n_rows"],
-                                       usecols=relevant_cols)
+                                       usecols=relevant_cols, dtype={"primaryid": str, "caseid": str})
     f_data.update(f_data.select_dtypes(include=np.number).applymap(
         '{:,g}'.format))  # cast dosage values to int formatting if applicable
 

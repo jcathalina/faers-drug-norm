@@ -9,8 +9,8 @@ from tqdm import tqdm
 from alg.formatter import FaersDataRow
 from alg.mapping import RxNormMapper, load_faers_data
 
-import logging
-logging.basicConfig(filename='faers_dev.log', level=logging.INFO)
+# import logging
+# logging.basicConfig(filename='faers_dev.log', level=logging.INFO)
 
 
 if __name__ == "__main__":
@@ -25,8 +25,9 @@ if __name__ == "__main__":
         "aers_path": "C:/_msc/faers-drug-norm/data/AERS_MIN_2004Q1_2012Q3.csv",
         "dev_path": "C:/_msc/faers-drug-norm/data/FAERS_DEV_SET.csv",
         "full_path": "C:/_msc/faers-drug-norm/data/FAERS_MIN_FULL_UNTIL_2021Q1.csv",
-        "n_rows": 1000
+        "n_rows": 10
     }
+
 
     mapper = RxNormMapper(config=mapper_configuration)
     faers_data = load_faers_data(config=faers_configuration, file_to_use="dev")
@@ -35,10 +36,13 @@ if __name__ == "__main__":
         data = FaersDataRow(data=row)
         mapper.map_to_rxnorm(data_row=data)
 
+    df = mapper.to_dataframe()
+    print(df.head())
+    df.to_csv("test_run.csv", index=False)
 
-    print("DONE! HERE ARE THE STATS!!")
-
-    logging.info(f"UNMAPPABLES: {mapper.unmappable}")
-    logging.info(f"DRUG NAME ONLY: {mapper.successful_name_only_calls}")
-    logging.info(f"DEFAULT QUERY: {mapper.successful_default_calls}")
-    logging.info(f"BACKUP QUERY: {mapper.successful_backup_calls}")
+    # print("DONE! HERE ARE THE STATS!!")
+    #
+    # logging.info(f"UNMAPPABLES: {mapper.unmappable}")
+    # logging.info(f"DRUG NAME ONLY: {mapper.successful_name_only_calls}")
+    # logging.info(f"DEFAULT QUERY: {mapper.successful_default_calls}")
+    # logging.info(f"BACKUP QUERY: {mapper.successful_backup_calls}")
