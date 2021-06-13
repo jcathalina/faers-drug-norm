@@ -20,13 +20,13 @@ class Identifier:
 class FaersDataRow:  # TODO: Think of a better name for this
     """Class for creating and handling a RxNav query along with its metadata to link it back to the original FAERS DB"""
     def __init__(self, data: pd.Series):
-        self.drug_name_entry: str = data["drug_name"]
+        self.drug_name_entry: str = data["drugname"]
         self.query: str = self._create_query(data=data)
         self.identifier = Identifier(primary_id=data["primaryid"], case_id=data["caseid"], drug_seq=data["drug_seq"])
         self.nda_num: "Optional[str]" = data["nda_num"]
         self.role_code: str = data["role_cod"]
         self.backup_query: "Optional[str]" = self._create_backup_query(data=data)
-        # self.int_mapped_query: "Optional[str]" = None
+        # self.int_mapped_query: "Optional[str]" = self.get_int_mapped_active_ingredient()
 
 
     @staticmethod
@@ -77,16 +77,15 @@ class FaersDataRow:  # TODO: Think of a better name for this
         direct_match = international_dict.get(drug_name, None)
         return f"{direct_match} {' '.join([str(data[c]) for c in components])}"
 
-    @staticmethod
-    def get_int_mapped_active_ingredient(data: pd.Series, international_dict: "Dict[str, str]", fuzzy_search=True) -> "Optional[str]":
-        # TODO: This can be a heper method for int mapped query to refactor code
+
+    def get_int_mapped_active_ingredient(self, international_dict: "Dict[str, str]", fuzzy_search=True) -> "Optional[str]":
+        # TODO: This can be a helper method for int mapped query to refactor code
         """
-        :param data:
         :param international_dict:
         :param fuzzy_search:
         :return:
         """
-        drug_name = data["drug_name"]
+        drug_name = self.drug_name_entry
         if fuzzy_search:
             choices = [*international_dict]  # unpack dict keys to list for fuzzy matching
             match = process.extractOne(drug_name, choices=choices, score_cutoff=90)

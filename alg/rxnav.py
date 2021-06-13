@@ -11,7 +11,7 @@ Candidate = namedtuple('Candidate', ['rxcui', 'score'])
 
 
 class RxNavResponse:
-    def __init__(self, query: str, candidates: List[Candidate]):
+    def __init__(self, query: str, candidates: "List[Optional[Candidate]]"):
         self.query = query
         self.candidates = candidates
         self.top_candidate = candidates[0]
@@ -48,7 +48,7 @@ def approx_match(query: str, max_entries=1, sleep_time=1, confidence_threshold: 
     try:
         j_candidates = j_res["approximateGroup"]["candidate"]
     except KeyError:
-        logger.info(f"Could not find any candidates for query: {query}.")
+        # logger.info(f"Could not find any candidates for query: {query}.")
         return RxNavResponse(query=query, candidates=[Candidate("NULL", 0)])
     for j_candidate in j_candidates:
         candidates.append(Candidate(j_candidate["rxcui"], int(j_candidate["score"])))

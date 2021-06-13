@@ -1,11 +1,13 @@
 from typing import Dict, Optional, List
-from enum import Enum
 
 import pandas as pd
 import numpy as np
 
-from alg.formatter import FaersDataRow
-from alg.rxnav import approx_match, RxNavResponse
+from alg.formatter import FaersDataRow, Identifier
+from alg.rxnav import approx_match, RxNavResponse, Candidate
+
+import logging
+logging.basicConfig(filename='faers_dev.log', level=logging.INFO)
 
 
 class RxNormMapper:
@@ -16,11 +18,18 @@ class RxNormMapper:
             path=config["int_path"])  # TODO: Load dictionary that maps int. drug names to active ingredients
 
         # Analytics
-        self.number_hq_mappings = 0
-        self.successful_name_only_calls = 0
-        self.successful_default_calls = 0
-        self.successful_backup_calls = 0
-        self.unmappable: "List[FaersDataRow]" = []  # TODO: Maybe I should just yield an unmappable and log it instead of keeping the list in mem
+        # self.number_hq_mappings = 0
+        # self.successful_name_only_calls = 0
+        # self.successful_default_calls = 0
+        # self.successful_backup_calls = 0
+        self.tracker: Dict = {
+                              "primaryid": [],
+                              "caseid": [],
+                              "drug_seq": [],
+                              "rxcui": [],
+                              "method": [],
+                              "score": []
+                              }
 
     def map_to_rxnorm(self, data_row: "FaersDataRow", include_international=True) -> None:
         """
@@ -36,36 +45,63 @@ class RxNormMapper:
 
             response: RxNavResponse = self.try_mapping_nda_num(data=data_row)
             if response.success:
-                print(response)
+                self.tracker["primaryid"].append(data_row.identifier.primary_id)
+                self.tracker["caseid"].append(data_row.identifier.case_id)
+                self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+                self.tracker["rxcui"].append(response.top_candidate.rxcui)
+                self.tracker["method"].append("NDA")  # NDA number
+                self.tracker["score"].append(response.top_candidate.score)
                 break
 
             response = self.try_mapping_only_drug_name(data=data_row)
             if response.success:
-                self.successful_name_only_calls += 1
-                print(response)
+                self.tracker["primaryid"].append(data_row.identifier.primary_id)
+                self.tracker["caseid"].append(data_row.identifier.case_id)
+                self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+                self.tracker["rxcui"].append(response.top_candidate.rxcui)
+                self.tracker["method"].append("DNO")  # Drug Name Only
+                self.tracker["score"].append(response.top_candidate.score)
                 break
 
             response = self.try_mapping_default_query(data=data_row)
             if response.success:
-                self.successful_default_calls += 1
-                print(response)
+                self.tracker["primaryid"].append(data_row.identifier.primary_id)
+                self.tracker["caseid"].append(data_row.identifier.case_id)
+                self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+                self.tracker["rxcui"].append(response.top_candidate.rxcui)
+                self.tracker["method"].append("DFQ")  # DeFault Query
+                self.tracker["score"].append(response.top_candidate.score)
                 break
 
             response = self.try_mapping_backup_query(data=data_row)
             if response.success:
-                self.successful_backup_calls += 1
-                print(response)
+                self.tracker["primaryid"].append(data_row.identifier.primary_id)
+                self.tracker["caseid"].append(data_row.identifier.case_id)
+                self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+                self.tracker["rxcui"].append(response.top_candidate.rxcui)
+                self.tracker["method"].append("BUQ")  # BackUp Query
+                self.tracker["score"].append(response.top_candidate.score)
                 break
 
             if include_international:
                 response = self.try_mapping_with_international_data(data=data_row)
                 # TODO: The international mapper has to fuzzy match against the EU dict to find the closest match or direct matching?
                 if response.success:
-                    print(response)
+                    self.tracker["primaryid"].append(data_row.identifier.primary_id)
+                    self.tracker["caseid"].append(data_row.identifier.case_id)
+                    self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+                    self.tracker["rxcui"].append(response.top_candidate.rxcui)
+                    self.tracker["method"].append("INT")  # INTernational active ingredient mapped
+                    self.tracker["score"].append(response.top_candidate.score)
                     break
 
-            print("No high-confidence mapping found... ")
-            self.unmappable.append(data_row)
+            self.tracker["primaryid"].append(data_row.identifier.primary_id)
+            self.tracker["caseid"].append(data_row.identifier.case_id)
+            self.tracker["drugseq"].append(data_row.identifier.drug_seq)
+            self.tracker["rxcui"].append(response.top_candidate.rxcui)
+            self.tracker["method"].append("NIL")  # No mapping has been found
+            self.tracker["score"].append(response.top_candidate.score)
+            # print("No high-confidence mapping found... ")
             tries_exhausted = True
 
     def try_mapping_nda_num(self, data: "FaersDataRow") -> "RxNavResponse":
@@ -73,7 +109,7 @@ class RxNormMapper:
             trade_name: "Optional[str]" = self.nda_dict.get(data.nda_num, None)
             if trade_name is None:
                 return RxNavResponse("",
-                                     [])  # Just return an empty default RxNavResponse to not waste time on this process.
+                                     [Candidate(rxcui=0, score=0)])  # Just return an empty default RxNavResponse to not waste time on this process.
             return approx_match(query=trade_name)
 
     def try_mapping_only_drug_name(self, data: "FaersDataRow") -> "RxNavResponse":
@@ -86,7 +122,11 @@ class RxNormMapper:
         return approx_match(query=data.backup_query)
 
     def try_mapping_with_international_data(self, data: "FaersDataRow") -> "RxNavResponse":
-        raise NotImplementedError
+        query = data.get_int_mapped_active_ingredient(international_dict=self.international_dict)
+        if not query:
+            return RxNavResponse("",
+                                 [Candidate(rxcui=0, score=0)])  # If no international mapping was found, don't waste time.
+        return approx_match(query=query)
 
     @staticmethod
     def _load_nda_dict(path: str) -> "Dict[str, str]":
@@ -102,8 +142,11 @@ class RxNormMapper:
 
         return {d["drug_name"]: d["prod_ai"] for d in int_df.to_dict(orient="records")}
 
+    def to_dataframe(self) -> pd.DataFrame:
+        return pd.DataFrame.from_dict(self.tracker)
 
-
+    def to_csv(self, path: str):
+        return self.to_dataframe().to_csv(path_or_buf=path, index=False)
 
 
 def load_faers_data(config: "Dict[str, str]", file_to_use: str) -> "pd.DataFrame":
@@ -136,18 +179,4 @@ def load_faers_data(config: "Dict[str, str]", file_to_use: str) -> "pd.DataFrame
     return f_data
 
 
-if __name__ == "__main__":
 
-    mapper_configuration = {
-        "nda_path": "C:/_msc/faers-drug-norm/data/dictionaries/nda_dict.csv",
-        "int_path": "C:/_msc/faers-drug-norm/data/dictionaries/eu_brand_names_list.csv",
-    }
-
-    faers_data = load_faers_data()
-    mapper = RxNormMapper(config=mapper_configuration)
-
-    for _, row in faers_data.iterrows():
-        data = FaersDataRow(data=row)
-        print(data)
-        res = approx_match(query=data.query)
-        print(res)
