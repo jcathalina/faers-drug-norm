@@ -1,16 +1,11 @@
-# TODO: Make a devset with random samples from the FAERS dataset, ~10% samples should be good
 # TODO: Recreate the banda set using the legacy data + FAERS up until 2015 Q3 (check if this is correct)
 # TODO: Write benchmark scripts for performance between tweaks + vs. Banda
 # TODO: Write out analysis methods that will be implemented during mapping, e.g. how many times do we match EU names
 # TODO: Output some sicc images
-# TODO: Add a directly runnable python script that downloads the aggregated data from figshare
 from tqdm import tqdm
 
 from alg.formatter import FaersDataRow
 from alg.mapping import RxNormMapper, load_faers_data
-
-# import logging
-# logging.basicConfig(filename='faers_dev.log', level=logging.INFO)
 
 
 if __name__ == "__main__":
@@ -50,10 +45,3 @@ if __name__ == "__main__":
 
         df = mapper.to_dataframe()
         df.to_csv("exp_2_no_clean_yes_int.csv", index=False)
-
-    # print("DONE! HERE ARE THE STATS!!")
-    #
-    # logging.info(f"UNMAPPABLES: {mapper.unmappable}")
-    # logging.info(f"DRUG NAME ONLY: {mapper.successful_name_only_calls}")
-    # logging.info(f"DEFAULT QUERY: {mapper.successful_default_calls}")
-    # logging.info(f"BACKUP QUERY: {mapper.successful_backup_calls}")
