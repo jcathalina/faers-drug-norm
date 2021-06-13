@@ -1,0 +1,1 @@
+head -n 1 AERS_MIN_2004Q1_2012Q3.csv > legacy_dev_set.csv && tail -n +1 AERS_MIN_2004Q1_2012Q3.csv | shuf -n 30000 >> legacy_dev_set.csv

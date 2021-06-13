@@ -116,7 +116,6 @@ def load_faers_data(config: "Dict[str, str]", file_to_use: str) -> "pd.DataFrame
                      "nda_num",
                      "dose_amt", "dose_unit", "dose_form", "origin", "prod_ai"]
 
-    filepath = ""
     if file_to_use == "dev":
         filepath = config["dev_path"]
     elif file_to_use == "faers":

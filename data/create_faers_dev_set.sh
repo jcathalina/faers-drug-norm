@@ -1,0 +1,1 @@
+head -n 1 FAERS_MIN_2012Q4_2021Q1.csv > FAERS_DEV_SET.csv && tail -n +1 FAERS_MIN_2012Q4_2021Q1.csv | shuf -n 50000 >> FAERS_DEV_SET.csv
