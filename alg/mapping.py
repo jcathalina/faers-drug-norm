@@ -188,7 +188,7 @@ class RxNormMapper:
         return self.to_dataframe().to_csv(path_or_buf=path, index=False)
 
 
-def load_faers_data(config: "Dict[str, str]", file_to_use: str, low_memory=False) -> "pd.DataFrame":
+def load_faers_data(config: "Dict[str, str]", file_to_use: str) -> "pd.DataFrame":
     """
     :param config:
     :param file_to_use: "dev", "faers", "aers", "full"
@@ -210,6 +210,7 @@ def load_faers_data(config: "Dict[str, str]", file_to_use: str, low_memory=False
         raise KeyError(f"the option {file_to_use} does not exist, please choose from dev, faers, aers, full")
 
     f_data: pd.DataFrame = pd.read_csv(filepath_or_buffer=filepath,
+                                       low_memory=False,
                                        nrows=config["n_rows"],
                                        usecols=relevant_cols, dtype={"primaryid": str, "caseid": str})
     f_data.update(f_data.select_dtypes(include=np.number).applymap(
