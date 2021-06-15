@@ -188,7 +188,7 @@ class RxNormMapper:
         return self.to_dataframe().to_csv(path_or_buf=path, index=False)
 
 
-def load_faers_data(config: "Dict[str, str]", file_to_use: str) -> "pd.DataFrame":
+def load_faers_data(config: "Dict[str, str]", file_to_use: str, low_memory=False) -> "pd.DataFrame":
     """
     :param config:
     :param file_to_use: "dev", "faers", "aers", "full"
