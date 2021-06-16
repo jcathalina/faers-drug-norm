@@ -59,25 +59,25 @@ def exp_3_no_clean_no_int_fulldev():
     df.to_csv("results/exp_3_no_clean_no_int_fulldev.csv", index=False)
 
 
-def exp_4_no_clean_no_int_complete_faers():
-    mapper = RxNormMapper(config=mapper_configuration)
-    faers_data = load_faers_data(config=faers_configuration, file_to_use="faers")
-
-    for _, row in tqdm(faers_data.iterrows(), total=len(faers_data)):
-        try:
-            data = FaersDataRow(data=row)
-        except:
-            print("Could not convert row to object, skipping...")
-            continue
-        try:
-            mapper.map_to_rxnorm(data_row=data, include_international=False)
-        except:
-            print(
-                f"Could not map pid:{data.identifier.primary_id} cid:{data.identifier.case_id} ds:{data.identifier.drug_seq} for some reason.")
-
-    df = mapper.to_dataframe()
-    df.to_csv("results/exp_4_no_clean_no_int_complete_faers.csv", index=False)
+# def exp_4_no_clean_no_int_complete_faers():
+#     mapper = RxNormMapper(config=mapper_configuration)
+#     faers_data = load_faers_data(config=faers_configuration, file_to_use="faers")
+#
+#     for _, row in tqdm(faers_data.iterrows(), total=len(faers_data)):
+#         try:
+#             data = FaersDataRow(data=row)
+#         except:
+#             print("Could not convert row to object, skipping...")
+#             continue
+#         try:
+#             mapper.map_to_rxnorm(data_row=data, include_international=False)
+#         except:
+#             print(
+#                 f"Could not map pid:{data.identifier.primary_id} cid:{data.identifier.case_id} ds:{data.identifier.drug_seq} for some reason.")
+#
+#     df = mapper.to_dataframe()
+#     df.to_csv("results/exp_4_no_clean_no_int_complete_faers.csv", index=False)
 
 
 if __name__ == "__main__":
-    exp_4_no_clean_no_int_complete_faers()
+    pass
