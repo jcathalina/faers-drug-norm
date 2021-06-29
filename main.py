@@ -59,6 +59,19 @@ def exp_3_no_clean_no_int_fulldev():
     df.to_csv("results/exp_3_no_clean_no_int_fulldev.csv", index=False)
 
 
+def exp_4_clean_no_int_fulldev_just_queries():
+    from alg.rxnav import approx_match
+
+    with open("results/cleaned_queries.csv", mode="r", encoding="utf-8") as f:
+        queries = [query for query in f.read().strip().split("\n")]
+
+    responses = [approx_match(query=query) for query in tqdm(queries)]
+
+    with open("results/cleaned_query_responses", mode="w", encoding="utf-8") as f:
+        for res in responses:
+            f.write(res.csv_format())
+
+
 # def exp_4_no_clean_no_int_complete_faers():
 #     mapper = RxNormMapper(config=mapper_configuration)
 #     faers_data = load_faers_data(config=faers_configuration, file_to_use="faers")
@@ -80,4 +93,10 @@ def exp_3_no_clean_no_int_fulldev():
 
 
 if __name__ == "__main__":
-    pass
+    exp_4_clean_no_int_fulldev_just_queries()
+
+# TODO: Next step 30/06/2021 --> Compare results from query responses uncleaned vs cleaned. THEN try ULMS LINKING USING SCISPACY TO SEE IF WE CAN DETECT THE DRUGS ONLY. THEN WITH THE DETECTED DRUG ENTITIES, TRY QUERYING AGAIN TO SEE IF IMPROVEMENTS WERE MADE.
+# TODO: MAYBE IT WON'T WORK BECAUSE RXNORM DOESN'T KNOW ALL DRUGS, BUT WE CAN USE > 1 KNOWLEDGE BASES WITH ULMS LINKING THINGY.
+# TODO: USEFUL URL 1: https://gbnegrini.com/post/biomedical-text-nlp-scispacy-named-entity-recognition-medical-records/
+# TODO: USEFUL URL 2: https://allenai.github.io/scispacy/
+# TODO: USEFUL URL 3: https://medium.com/@maheshdmahi/scispacy-for-bio-medical-named-entity-recognition-ner-63ed548f1df0
