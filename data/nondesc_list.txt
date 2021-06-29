@@ -1,0 +1,6 @@
+analgesic
+anesthetic
+antibiotic
+painkiller
+unknown
+unnamed
