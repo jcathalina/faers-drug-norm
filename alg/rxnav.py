@@ -20,8 +20,8 @@ class RxNavResponse:
     def __repr__(self):
         return f"Query: {self.query} -- Candidates: {self.candidates}"
 
-    def csv_format(self):
-        return f"{self.query},{self.top_candidate.rxcui},{self.top_candidate.score}\n"
+    def csv_format(self, sep=","):
+        return f"{self.query}{sep}{self.top_candidate.rxcui}{sep}{self.top_candidate.score}\n"
 
 
 def approx_match(query: str, max_entries=1, sleep_time=1, confidence_threshold: int = 80) -> "RxNavResponse":

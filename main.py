@@ -67,9 +67,9 @@ def exp_4_clean_no_int_fulldev_just_queries():
 
     responses = [approx_match(query=query) for query in tqdm(queries)]
 
-    with open("results/cleaned_query_responses", mode="w", encoding="utf-8") as f:
+    with open("results/cleaned_query_responses_newsep.csv", mode="w", encoding="utf-8") as f:
         for res in responses:
-            f.write(res.csv_format())
+            f.write(res.csv_format(sep="$"))
 
 
 # def exp_4_no_clean_no_int_complete_faers():
